@@ -6,6 +6,8 @@ class Settings(BaseSettings):
    file_allowed_types: list  
    file_max_size: int   
    file_default_chunk_size: int    
+   mongo_db_url : str
+   mongo_db_name: str
 
    class Config:
         env_file = ".env"
