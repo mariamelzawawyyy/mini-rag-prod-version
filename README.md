@@ -29,6 +29,8 @@ conda activate mini-rag
 
 ```bash
 pip install -r requirements.txt
+sudo apt update
+sudo apt install libpq-dev gcc python3-dev
 ```
 
 ### 4. Set up environment variables

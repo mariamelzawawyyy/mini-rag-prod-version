@@ -1,22 +1,42 @@
+from contextlib import asynccontextmanager
+
 from fastapi import FastAPI
-from  Routers import base  
-from  Routers import data   
-from pymongo import AsyncMongoClient
-from helpers.config import get_settings 
+from sqlalchemy import text
 
-app = FastAPI()
+from .database.postgres import engine
+from .database.mongo import mongo_client
 
-@app.on_event("startup")
-async def startup_db_client():
-    """Initialize the MongoDB client on application startup."""
-    settings = get_settings()
-    app.mongo_connection = AsyncMongoClient(settings.mongo_db_url) 
-    app.db_client = app.mongo_connection[settings.mongo_db_name]  # Access the specified database
+from .routers import auth_router, base_router, data_router, project_router
 
-@app.on_event("shutdown")    
-async def shutdown_db_client():
-    """Close the MongoDB client on application shutdown."""
-    await app.mongo_connection.close()
 
-app.include_router(base.base_router)    
-app.include_router(data.data_router)  
+@asynccontextmanager
+async def lifespan(app: FastAPI):
+
+    try:
+        # Startup: Check PostgreSQL connection
+        async with engine.connect() as connection:
+            await connection.execute(text("SELECT 1"))
+
+        # Startup: Check MongoDB connection
+        await mongo_client.admin.command("ping")
+
+        yield
+
+    finally:
+        # Shutdown: Close database connections
+        await engine.dispose()
+        await mongo_client.close()
+
+
+app = FastAPI(
+    title="Mini RAG API",
+    version="1.0.0",
+    lifespan=lifespan
+)
+
+app.include_router(auth_router)  
+app.include_router(base_router)  
+app.include_router(project_router)  
+app.include_router(data_router)   
+  
+  
