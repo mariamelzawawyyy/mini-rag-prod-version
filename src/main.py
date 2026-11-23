@@ -5,6 +5,7 @@ from sqlalchemy import text
 
 from .database.postgres import engine
 from .database.mongo import mongo_client
+from .database.mongo import mongo_client, mongo_db
 
 from .routers import auth_router, base_router, data_router, project_router
 
@@ -19,6 +20,8 @@ async def lifespan(app: FastAPI):
 
         # Startup: Check MongoDB connection
         await mongo_client.admin.command("ping")
+
+        app.db_client = mongo_db
 
         yield
 

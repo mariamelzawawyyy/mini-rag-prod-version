@@ -2,19 +2,47 @@ from .BaseDataModel import BaseDataModel
 from .mongo_db_schemas import Project
 from .Enums import DbEnums
 
+# the code responsible for dealing with projects collection in mongodb
 class ProjectModel(BaseDataModel):  
     def __init__(self,db_client:object):
         super().__init__(db_client=db_client)
         self.collection = self.db_client[DbEnums.COLLECTION_PROJECT_NAME.value] 
         #the projects collection
+
+    @classmethod
+    async def create_instance(cls,db_client:object) :
+        instance = cls(db_client)   
+        # this is equivalent to creating an object from 
+        # the projectmodel class  
+        # just like saying project_object = ProjectModel(db_client) 
+        # so it will automatically have both db client and collection 
+        # next tie we want to create an object we dont just use 
+        # project_model = ProjectModel(db_client=mongo_db)  
+        # it will be
+        #project_model = ProjectModel.create_instance  
+        await instance.init_collection()  
+        # this is equivalent to creating an instance from
+        # the object we created before 
+        # this is like projectObject.init_collection() 
+        return instance 
+
+    async def init_collection(self):
+        for index in Project.get_indexes():
+            await self.collection.create_index(
+                index["key"],
+                name=index["name"],
+                unique=index["unique"],
+            ) 
+    # this gets the indexes we defined in the project schema and
+    #actually creates them for this specific collection             
     
     async def create_project(self, project:Project):     
-         result = await self.collection.insert_one(project.model_dump(
+        result = await self.collection.insert_one(project.model_dump(
             by_alias = True ,
             exclude_none = True #or  exclude_unset = true (look for it later)
-         ))  
-         project.id = result.inserted_id
-         return project 
+        ))  
+        project.id = result.inserted_id
+        return project 
 
 
     async def get_project(self, project_id:str,owner_id:str):       
@@ -55,5 +83,4 @@ class ProjectModel(BaseDataModel):
                 Project(**document)
             )
         return projects , total_pages 
-
  

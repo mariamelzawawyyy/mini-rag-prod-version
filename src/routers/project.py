@@ -19,7 +19,7 @@ async def create_new_project(
     mongo_db=Depends(get_mongo_db),
     current_user: User = Depends(get_current_user),
 ):
-    project_model = ProjectModel(db_client=mongo_db)
+    project_model = await ProjectModel.create_instance(db_client=mongo_db)  
     project = await project_model.create_project(
         Project(
             project_id=str(uuid4()),
@@ -42,7 +42,7 @@ async def get_all_projects(
     mongo_db=Depends(get_mongo_db),
     current_user: User = Depends(get_current_user) 
 ):
-   project_model = ProjectModel(db_client=mongo_db) 
+   project_model = await ProjectModel.create_instance(db_client=mongo_db) 
    projects , total_pages = await project_model.get_all_projects(
     owner_id = str(current_user.user_id),
     page = page ,

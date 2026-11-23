@@ -9,5 +9,6 @@ class ResponseSignal(Enum):
     PROCESSING_SUCCESS = "File processing successful"
     PROCESSING_FAILED = "File processing failed"
     PROJECT_NOT_FOUND = "Project not found"
+    NO_ASSETS_FOUND = "No Files Found"  
     
     
